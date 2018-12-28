@@ -36,3 +36,11 @@ class SnippetSerializer(serializers.Serializer):
         instance.style = validated_data.get('style', instance.style)
         instance.save()
         return instance
+
+
+# Model에 정의되어있는 필드정보를 가져와서 좀 더 손쉽게 시리얼라이징 할 수 있도록 만들어진 클래스.
+# 맵핑할 model을 Meta InnerClass에 정의하고 사용할 필드를 지정하면 알아서 시리얼라이저가 생성됨.
+class SnippetModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Snippet
+        fields = ('id', 'title', 'code', 'linenos', 'language', 'style')
