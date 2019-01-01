@@ -1,4 +1,4 @@
-from django.conf.urls import url
+from django.conf.urls import url, include
 #
 from rest_framework.urlpatterns import format_suffix_patterns
 #
@@ -8,6 +8,9 @@ app_name = 'snippets'
 urlpatterns = [
     url(r'^$', views.snippet_list),
     url(r'^(?P<pk>[0-9]+)/$', views.snippet_detail),
+    url(r'^users/$', views.UserList.as_view()),
+    url(r'^users/(?P<pk>[0-9]+)/$', views.UserDetail.as_view()),
+    url(r'^api-auth/',  include('rest_framework.urls', namespace='rest_framework')), # namespace값은 고정임.
 ]
 
 # 접미사(suffix)로 format형식 지정해주기.

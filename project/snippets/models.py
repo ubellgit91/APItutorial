@@ -1,6 +1,8 @@
 from django.db import models
-from pygments.lexers import get_all_lexers
+from pygments.lexers import get_all_lexers, get_lexer_by_name
 from pygments.styles import get_all_styles
+from pygments import highlight
+from pygments.formatters.html import HtmlFormatter
 
 # Create your models here.
 
@@ -16,6 +18,23 @@ class Snippet(models.Model):
     linenos = models.BooleanField(default=False)
     language = models.CharField(choices=LANGUAGE_CHOICES, default='python', max_length=100)
     style = models.CharField(choices=STYLE_CHOICES, default='friendly', max_length=100)
+    # 추가
+    owner = models.ForeignKey('auth.User', related_name='snippets', on_delete=models.CASCADE)
+    highlighted = models.TextField()
+
+    def save(self, *args, **kwargs):
+        """
+        :param args: 
+        :param kwargs: 
+        :return:
+        라이브러리를 사용하여 하이라이트된 코드를 만든다. 
+        """
+        lexer = get_lexer_by_name(self.language)
+        linenos = self.linenos and 'table' or False
+        options = self.title and {'title': self.title} or {}
+        formatter = HtmlFormatter(style=self.style, linenos=linenos, full=True, **options)
+        self.highlighted = highlight(self.code, lexer, formatter)
+        super(Snippet, self).save(*args, **kwargs)
 
     class Meta:
         ordering = ('created',)

@@ -1,4 +1,6 @@
 from django.forms import widgets
+from django.contrib.auth.models import User
+#
 from rest_framework import serializers
 from .models import Snippet, LANGUAGE_CHOICES, STYLE_CHOICES
 
@@ -10,6 +12,7 @@ class SnippetSerializer(serializers.Serializer):
     linenos = serializers.BooleanField(required=False)
     language = serializers.ChoiceField(choices=LANGUAGE_CHOICES, default='python')
     style = serializers.ChoiceField(choices=STYLE_CHOICES, default='friendly')
+    owner = serializers.ReadOnlyField(source='owner.username')
 
     def create(self, validated_data):
         """
@@ -41,6 +44,17 @@ class SnippetSerializer(serializers.Serializer):
 # Model에 정의되어있는 필드정보를 가져와서 좀 더 손쉽게 시리얼라이징 할 수 있도록 만들어진 클래스.
 # 맵핑할 model을 Meta InnerClass에 정의하고 사용할 필드를 지정하면 알아서 시리얼라이저가 생성됨.
 class SnippetModelSerializer(serializers.ModelSerializer):
+    onwer = serializers.ReadOnlyField(source='onwer.username')
     class Meta:
         model = Snippet
-        fields = ('id', 'title', 'code', 'linenos', 'language', 'style')
+        fields = ('id', 'title', 'code', 'linenos', 'language', 'style', 'onwer')
+
+
+## User시리얼라이저
+class UserSerializer(serializers.ModelSerializer):
+    # snippet은 User와 역방향참조를 하고 있기 때문에 명시적으로 쿼리셋을 지정해줌.
+    # User가 Pk를 가지고있고 snippet이 FK를 갖는다. FK를 갖는 쪽에서 PK를 갖는 쪾에 접근-> 역방향참조.
+    snippets = serializers.PrimaryKeyRelatedField(many=True, queryset=Snippet.objects.all())
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'snippets')
